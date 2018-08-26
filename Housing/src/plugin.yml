@@ -1,0 +1,44 @@
+name: Housing
+main: com.finaljtth.housing.Main
+version: 0.1 Alpha
+api-version: 1.12.2
+author: FinalJTth
+description: This plugin let create and build your own housing.
+prefix: Housing
+depend: 
+- Multiverse-Core
+commands:
+  Housing:
+    description: Open housing GUI.
+    aliases: hs
+    usage: /<command> [create|delete]
+  Housebuildmode:
+    description: Change between build mode and default mode.
+    aliases: hbm
+    usage: /<command>
+  WriteJSON:
+    aliases: wj
+  ReadJSON:
+    aliases: rj
+  ReadRawJSON:
+    aliases: rrj
+permissions:
+  housing.buildmode.bypass:
+    description: Allow player to bypass buildmode.
+    default: op
+  housing.buildrestricted.bypass:
+    description: Allow player to build in other people's house without allowance from the owner.
+    default: op
+  housing.world.create:
+    description: Allow player to create a housing world.
+    default: true
+  housing.world.create.unlimited:
+    description: Allow player to create a housing world.
+    default: op
+  housing.json.*:
+    description: Allow player manipulate JSON file inside the plugin folder.
+    default: op
+    children:
+      housing.json.write: true
+      housing.json.read: true
+      housing.json.readraw: true
