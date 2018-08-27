@@ -151,6 +151,7 @@ public class DataJSON {
 	        if(exist == true) {
 	        	data = (JSONObject) dataArray.get(index);
 	        	var = (String) data.get(object);
+	        	return var;
 	        }
 	        else {
 	        	return null;
@@ -159,12 +160,7 @@ public class DataJSON {
         catch (Exception ex) {
         	ex.printStackTrace();
         }
-        if (data == null) {
-        	return null;
-        }
-        else {
-        	return var;
-        }
+		return var;
     }
 	
 	public static JSONObject readRawJSON(String fileName, String subPath) {
