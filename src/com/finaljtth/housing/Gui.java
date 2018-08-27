@@ -37,7 +37,6 @@ public class Gui {
         sMeta.setOwningPlayer(player);
         sMeta.setDisplayName(playerName + suffix);
         skull.setItemMeta(sMeta);
-        player = (Player) sMeta.getOwningPlayer();
         return skull;
     }
 	

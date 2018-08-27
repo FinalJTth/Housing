@@ -136,26 +136,33 @@ public class DataJSON {
 		JSONArray dataArray = new JSONArray();
         try {
             Object obj = parser.parse(new FileReader(file));
-            JSONObject player = (JSONObject) obj;
+            JSONObject playerdata = (JSONObject) obj;
+            if(playerdata.get(playername) != null) {
+            	dataArray = (JSONArray) playerdata.get(playername);
+            }
             boolean exist = false;
         	int index = 0;
-            dataArray = (JSONArray) player.get(playername);
-            for (int i = 0 ; i < dataArray.size(); i++) {
-	        	JSONObject tempJSONObject = (JSONObject) dataArray.get(i);
-	        	if(tempJSONObject.containsKey(object)){
-	        		exist = true;
-	        		index = i;
-	        		i = dataArray.size();
-	        	}
-	        }
-	        if(exist == true) {
-	        	data = (JSONObject) dataArray.get(index);
-	        	var = (String) data.get(object);
-	        	return var;
-	        }
-	        else {
-	        	return null;
-	        }
+            if(!dataArray.isEmpty()) {
+            	for (int i = 0 ; i < dataArray.size(); i++) {
+    	        	JSONObject tempJSONObject = (JSONObject) dataArray.get(i);
+    	        	if(tempJSONObject.containsKey(object)){
+    	        		exist = true;
+    	        		index = i;
+    	        		i = dataArray.size();
+    	        	}
+    	        }
+            	if(exist == true) {
+    	        	data = (JSONObject) dataArray.get(index);
+    	        	var = (String) data.get(object);
+    	        	return var;
+    	        }
+    	        else {
+    	        	return null;
+    	        }
+            }
+            else {
+            	return null;
+            }
         } 
         catch (Exception ex) {
         	ex.printStackTrace();

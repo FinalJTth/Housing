@@ -283,62 +283,100 @@ public class Main extends JavaPlugin implements Listener {
         return true;
 	}
     if(cmd.getName().equalsIgnoreCase("housing")){
-    	Player player = (Player) sender;
-    	//Housing - create
-    	if (args[0].equalsIgnoreCase("create")) {
-    		int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  player.getName(), "worldcount"));
-    		int worldmax = plugin.getConfig().getInt("World.world_maximum");
-    		if (player.hasPermission("housing.world.create") == false) {
-   				player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
-   			}
-   			else if (args.length != 2) {
-   				player.sendMessage(ChatColor.RED + "Missing player name argument.");
-    		}
-    		else if (DataJSON.readJSON("Data", File.separator, player.getName(), "worldcount") == null) {
-				player.sendMessage(ChatColor.RED + "The player is not a valid player in the database");
-			}
-    		else if (worldcount >= worldmax) {
-    			player.sendMessage(ChatColor.RED + "The player has reached the maximum number of world.");
-    		}
-    		else {
-    			DataJSON.writeJSON("Data", File.separator, player.getName(), "worldcount", String.valueOf(worldcount+1));
-            	HousingManager.cloningHousingWorld(player);
-    		}
+    	if (args.length == 2) {
+    		if (args[0].equalsIgnoreCase("create")) {
+        		if (sender.hasPermission("housing.world.create") == false) {
+        			sender.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+        			return true;
+       			}
+        		if (DataJSON.readJSON("Data", File.separator, args[1], "worldcount") == null) {
+        			sender.sendMessage(ChatColor.RED + "The player is not a valid player in the database");
+        			return true;
+    			}
+        		else {
+        			int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  args[1], "worldcount"));
+            		int worldmax = plugin.getConfig().getInt("World.world_maximum");
+            		if (worldcount >= worldmax) {
+            			sender.sendMessage(ChatColor.RED + "The player has reached the maximum number of world.");
+            		}
+            		else {
+            			DataJSON.writeJSON("Data", File.separator, args[1], "worldcount", String.valueOf(worldcount+1));
+            			sender.sendMessage(ChatColor.GOLD + "Creating housing world for player " + ChatColor.AQUA + args[1]);
+                    	HousingManager.cloningHousingWorld(args[1]);
+            		}
+        		}
+        	}
+    		if (args[0].equalsIgnoreCase("forcecreate")) {
+        		if (sender.hasPermission("housing.world.forcecreate") == false) {
+        			sender.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+        			return true;
+       			}
+        		if (DataJSON.readJSON("Data", File.separator, args[1], "worldcount") == null) {
+        			sender.sendMessage(ChatColor.RED + "The player is not a valid player in the database");
+        			return true;
+    			}
+        		else {
+        			int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  args[1], "worldcount"));
+            		DataJSON.writeJSON("Data", File.separator, args[1], "worldcount", String.valueOf(worldcount+1));
+            		sender.sendMessage(ChatColor.GOLD + "Creating housing world for player " + ChatColor.AQUA + args[1]);
+                    HousingManager.cloningHousingWorld(args[1]);
+            	}
+        	}
+        	else if (args[0].equalsIgnoreCase("delete")) {
+        		if (sender.hasPermission("housing.world.delete") == false) {
+        			sender.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+        			return true;
+        		}
+        		if (DataJSON.readJSON("Data", File.separator, args[1], "worldcount") == null) {
+        			sender.sendMessage(ChatColor.RED + "The player is not a valid player in the database");
+        			return true;
+    			}
+        		else {
+        			int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  args[1], "worldcount"));
+        			World world = Bukkit.getServer().getWorld(args[1] + "_housing");
+            		if (worldcount == 0 || world == null){
+            			sender.sendMessage(ChatColor.RED + "The player has no housing world to delete");
+            		}
+            		else {
+            			DataJSON.writeJSON("Data", File.separator, args[1], "worldcount", String.valueOf(worldcount-1));
+            			sender.sendMessage(ChatColor.GOLD + "Deleting housing world for player " + ChatColor.AQUA + args[1]);
+            			HousingManager.deleteHousingWorld(args[1]);
+            		}
+        		}
+        	}
+        	else {
+        		sender.sendMessage(ChatColor.RED + "The specific command has invalid arguments, type \"/hs help\"");
+        	}
     	}
-    	else if (args[0].equalsIgnoreCase("delete")) {
-    		int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  player.getName(), "worldcount"));
-    		World world = Bukkit.getServer().getWorld(player.getName() + "_housing");
-    		if (player.hasPermission("housing.world.delete") == false) {
-    			player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
-    		}
-    		else if (args.length != 2) {
-    			player.sendMessage(ChatColor.RED + "Missing player name argument.");
-    		}
-    		else if (DataJSON.readJSON("Data", File.separator, player.getName(), "worldcount") == null) {
-				player.sendMessage(ChatColor.RED + "The player is not a valid player in the database");
-			}
-    		else if (worldcount == 0 || world == null) {
-    			player.sendMessage(ChatColor.RED + "The player has no housing world to delete");
-    		}
-    		else {
-    			DataJSON.writeJSON("Data", File.separator, player.getName(), "worldcount", String.valueOf(worldcount-1));
-    			HousingManager.deleteHousingWorld(player);
-    		}
-    	}
-    	else if (sender instanceof Player) {
+    	else if (args.length == 1) {
     		if (args[0].equalsIgnoreCase("gui")) {
-    			Gui.mainPage(player);
-            	Gui.openGui(player, Gui.main_gui);
+            	if (sender instanceof Player) {
+            		Player player = (Player) sender;
+            		Gui.mainPage(player);
+                   	Gui.openGui(player, Gui.main_gui);
+            	}
+            	else {
+            		sender.sendMessage("This command can only be run by a player.");
+            	}
     		}
-    		else if (args[0].equalsIgnoreCase("housing")) {
+    		else {
+    			sender.sendMessage(ChatColor.RED + "The specific command has invalid arguments, type \"/hs help\"");
+        	}
+    	}
+    	else if (args.length == 0) {
+    		if (sender instanceof Player) {
+    			Player player = (Player) sender;
         		World world = Bukkit.getServer().getWorld(player.getName() + "_housing");
-        		player.teleport(new Location(world, -29, 32, 94));
+            	player.teleport(new Location(world, -29, 32, 94));
+    		}
+    		else {
+        	  	sender.sendMessage("This command can only be run by a player.");
+        	}
     	}
     	else {
-    	  	sender.sendMessage("This command can only be run by a player.");
+    		sender.sendMessage(ChatColor.RED + "The specific command has too many arguments, type \"/hs help\"");
     	}
-    }
-    return true;
+    	return true;
     }
     if(cmd.getName().equalsIgnoreCase("housebuildmode")){
     	if (sender instanceof Player) {

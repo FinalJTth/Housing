@@ -1,31 +1,46 @@
 package com.finaljtth.housing;
 
+import java.io.File;
+
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.entity.Player;
+
 import com.onarandombox.MultiverseCore.utils.WorldManager;
 
 public class HousingManager {
 
-	public static void cloningHousingWorld(Player player) {
-		WorldManager wm = new WorldManager(Main.getMultiverseCore());
-		String hsworld = player.getName() + "_housing";
+	public static void cloningHousingWorld(String player) {
+		WorldManager wm = (WorldManager) Main.getMultiverseCore().getMVWorldManager();
+		String hsworld = player + "_housing";
 		if(!wm.isMVWorld(hsworld)){
 		    wm.cloneWorld("template", hsworld);
 		    wm.loadWorld(hsworld);
 		    wm.getMVWorld(hsworld).setAlias("Housing");
 		}
-		World w = Bukkit.getServer().getWorld(hsworld);
-		player.teleport(new Location(w, -29, 32, 94));
 	}
 	
-	public static void deleteHousingWorld(Player player) {
-		WorldManager wm = new WorldManager(Main.getMultiverseCore());
-		String hsworld = player.getName() + "_housing";
+	public static void deleteHousingWorld(String player) {
+		WorldManager wm = (WorldManager) Main.getMultiverseCore().getMVWorldManager();
+		String hsworld = player + "_housing";
 		if(wm.isMVWorld(hsworld)){
+			File folder = new File(Bukkit.getServer().getWorld(hsworld).getWorldFolder().getPath());
 		    wm.unloadWorld(hsworld);
 		    wm.deleteWorld(hsworld);
+		    deleteDirectory(folder);
 		}
+	}
+	
+	public static boolean deleteDirectory(File path) {
+		 if( path.exists() ) {
+			 File[] files = path.listFiles();
+			 for(int i=0; i<files.length; i++) {
+				 if(files[i].isDirectory()) {
+					 deleteDirectory(files[i]);
+				 }
+				 else {
+					 files[i].delete();
+				 }
+			 }
+		 }
+		 return( path.delete() );
 	}
 }
