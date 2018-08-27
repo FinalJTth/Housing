@@ -12,8 +12,10 @@ import java.util.Arrays;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -30,8 +32,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import com.onarandombox.MultiverseCore.MultiverseCore;
 
 /**
  *
@@ -88,7 +94,16 @@ public class Main extends JavaPlugin implements Listener {
         }
     }
     
-    
+    public static MultiverseCore getMultiverseCore() {
+        Plugin plugin = Bukkit.getServer().getPluginManager().getPlugin("Multiverse-Core");
+ 
+        if (plugin instanceof MultiverseCore) {
+            return (MultiverseCore) plugin;
+        }
+ 
+        throw new RuntimeException("MultiVerse not found!");
+    }
+        
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {       //On the argument, creating object "event" from class PlayerJoinEvent
         Player player = event.getPlayer();                  //Create object player, get Player entity that joined the server
@@ -229,6 +244,11 @@ public class Main extends JavaPlugin implements Listener {
         	Gui.openGui(player, Gui.list_gui);
         	return;
         }
+        if (meta.getDisplayName().contains("Go to your own house")) {
+        	World world = Bukkit.getServer().getWorld(player.getName() + "_housing");
+    		player.teleport(new Location(world, -29, 32, 94));
+        	return;
+        }
         if (meta.getDisplayName().contains("Current Mode : Default Mode")) {
         	player.closeInventory();
         	Gui.buildMode(player, 0);
@@ -239,6 +259,13 @@ public class Main extends JavaPlugin implements Listener {
         	player.closeInventory();
         	Gui.buildMode(player, 1);
         	player.closeInventory();
+        	return;
+        }
+        //Clicking on player head inside Visit someone else's house list
+        if (meta.getDisplayName().contains("'s house")) {
+        	SkullMeta sMeta = (SkullMeta) clickedItem.getItemMeta();
+        	World world = Bukkit.getServer().getWorld(sMeta.getOwningPlayer().getName() + "_housing");
+    		player.teleport(new Location(world, -29, 32, 94));
         	return;
         }
     }
@@ -256,39 +283,62 @@ public class Main extends JavaPlugin implements Listener {
         return true;
 	}
     if(cmd.getName().equalsIgnoreCase("housing")){
-    	if (sender instanceof Player) {
-    		Player player = (Player) sender;
-    		//Housing - create
-    		if (args[0].equalsIgnoreCase("create")) {
-    			int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  player.getName(), "worldcount"));
-    			int worldmax = plugin.getConfig().getInt("World.world_maximum");
-    			if (player.hasPermission("housing.world.create") == false) {
-    				player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
-    			}
-    			else if (args.length != 2) {
-    				player.sendMessage(ChatColor.RED + "Missing player name argument.");
-    			}
-    			else if (DataJSON.readJSON("Data", File.separator, player.getName(), "worldcount") == null) {
-					player.sendMessage(ChatColor.RED + "The player is not a valid player in the database");
-				}
-    			else if (worldcount >= worldmax) {
-    				player.sendMessage(ChatColor.RED + "The player has reached the maximum number of world.");
-    			}
-    			else {
-    				DataJSON.writeJSON("Data", File.separator, player.getName(), "worldcount", String.valueOf(worldcount)+1);
-            		WorldTemplate.defineCopyWorld(player);
-    			}
+    	Player player = (Player) sender;
+    	//Housing - create
+    	if (args[0].equalsIgnoreCase("create")) {
+    		int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  player.getName(), "worldcount"));
+    		int worldmax = plugin.getConfig().getInt("World.world_maximum");
+    		if (player.hasPermission("housing.world.create") == false) {
+   				player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+   			}
+   			else if (args.length != 2) {
+   				player.sendMessage(ChatColor.RED + "Missing player name argument.");
     		}
-    	
+    		else if (DataJSON.readJSON("Data", File.separator, player.getName(), "worldcount") == null) {
+				player.sendMessage(ChatColor.RED + "The player is not a valid player in the database");
+			}
+    		else if (worldcount >= worldmax) {
+    			player.sendMessage(ChatColor.RED + "The player has reached the maximum number of world.");
+    		}
     		else {
-    			Gui.mainPage(player);
-        		Gui.openGui(player, Gui.main_gui);
+    			DataJSON.writeJSON("Data", File.separator, player.getName(), "worldcount", String.valueOf(worldcount+1));
+            	HousingManager.cloningHousingWorld(player);
     		}
+    	}
+    	else if (args[0].equalsIgnoreCase("delete")) {
+    		int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  player.getName(), "worldcount"));
+    		World world = Bukkit.getServer().getWorld(player.getName() + "_housing");
+    		if (player.hasPermission("housing.world.delete") == false) {
+    			player.sendMessage(ChatColor.RED + "You do not have permission to do that.");
+    		}
+    		else if (args.length != 2) {
+    			player.sendMessage(ChatColor.RED + "Missing player name argument.");
+    		}
+    		else if (DataJSON.readJSON("Data", File.separator, player.getName(), "worldcount") == null) {
+				player.sendMessage(ChatColor.RED + "The player is not a valid player in the database");
+			}
+    		else if (worldcount == 0 || world == null) {
+    			player.sendMessage(ChatColor.RED + "The player has no housing world to delete");
+    		}
+    		else {
+    			DataJSON.writeJSON("Data", File.separator, player.getName(), "worldcount", String.valueOf(worldcount-1));
+    			HousingManager.deleteHousingWorld(player);
+    		}
+    	}
+    	else if (sender instanceof Player) {
+    		if (args[0].equalsIgnoreCase("gui")) {
+    			Gui.mainPage(player);
+            	Gui.openGui(player, Gui.main_gui);
+    		}
+    		else if (args[0].equalsIgnoreCase("housing")) {
+        		World world = Bukkit.getServer().getWorld(player.getName() + "_housing");
+        		player.teleport(new Location(world, -29, 32, 94));
     	}
     	else {
-    		sender.sendMessage("This command can only be run by a player.");
+    	  	sender.sendMessage("This command can only be run by a player.");
     	}
-    	return true;
+    }
+    return true;
     }
     if(cmd.getName().equalsIgnoreCase("housebuildmode")){
     	if (sender instanceof Player) {

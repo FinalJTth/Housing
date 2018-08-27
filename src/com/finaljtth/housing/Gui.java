@@ -37,6 +37,7 @@ public class Gui {
         sMeta.setOwningPlayer(player);
         sMeta.setDisplayName(playerName + suffix);
         skull.setItemMeta(sMeta);
+        player = (Player) sMeta.getOwningPlayer();
         return skull;
     }
 	
@@ -61,8 +62,8 @@ public class Gui {
     public static void mainPage(Player player) {
     	boolean buildmode = Boolean.valueOf(DataJSON.readJSON("Data", File.separator, player.getName(), "buildmode"));
     	main_gui = Bukkit.createInventory(null, 45, "Housing");
-    	main_gui.setItem(24, createItem(ChatColor.GREEN + "Go to your own house", new ArrayList<String>(Arrays.asList(ChatColor.DARK_GRAY + "Travel via teleportation to go to||" + "your own house.")), Material.BIRCH_DOOR));
-    	main_gui.setItem(25, createItem(ChatColor.GREEN + "Visit someone else's house", new ArrayList<String>(Arrays.asList(ChatColor.DARK_GRAY + "Travel via teleportation to visit||" + "other's people house.")), Material.SPRUCE_DOOR));
+    	main_gui.setItem(18, createItem(ChatColor.GREEN + "Go to your own house", new ArrayList<String>(Arrays.asList(ChatColor.DARK_GRAY + "Travel via teleportation to go to||" + "your own house.")), Material.BIRCH_DOOR));
+    	main_gui.setItem(27, createItem(ChatColor.GREEN + "Visit someone else's house", new ArrayList<String>(Arrays.asList(ChatColor.DARK_GRAY + "Travel via teleportation to visit||" + "other's people house.")), Material.SPRUCE_DOOR));
     	main_gui.setItem(36, createItem(ChatColor.GREEN + "Select game to play", new ArrayList<String>(Arrays.asList(ChatColor.DARK_GRAY + "Choose a game to play or," + "go back to main lobby.")), Material.COMPASS));
         main_gui.setItem(38, createItem(ChatColor.GREEN + "House Privacy Settings", new ArrayList<String>(Arrays.asList(ChatColor.DARK_GRAY + "Allow who to visit your house.")), Material.IRON_DOOR));
         main_gui.setItem(40, createItem(ChatColor.GREEN + "House Settings", new ArrayList<String>(Arrays.asList(ChatColor.DARK_GRAY + "Edit various of the house setting.")), Material.DIODE));
