@@ -5,8 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.TreeMap;
 
+import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.plugin.Plugin;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -34,6 +37,24 @@ public class DataJSON {
             	file.createNewFile();
             	FileWriter fileWriter = new FileWriter(file); 
             	JSONObject empty = new JSONObject();
+            	fileWriter.write(rearrange(empty));
+            	fileWriter.flush(); 
+    	        fileWriter.close();
+            }
+	        file = new File(pluginFolder + File.separator + "Group.json");
+	        filePath.mkdirs();
+	        if (!file.exists()) {
+            	file.createNewFile();
+            	FileWriter fileWriter = new FileWriter(file); 
+            	JSONObject data = new JSONObject();
+            	JSONArray dataArray = new JSONArray();
+            	List<World> worldList = Bukkit.getWorlds();
+            	for (int i=0; i < worldList.size(); i++) {
+            		if (worldList.get(i).getName().contains("_housing")) {
+            			String worldname = worldList.get(i).getName();
+            			dataArray
+            		}
+            	}
             	fileWriter.write(rearrange(empty));
             	fileWriter.flush(); 
     	        fileWriter.close();
@@ -168,6 +189,56 @@ public class DataJSON {
         	ex.printStackTrace();
         }
 		return var;
+    }
+	
+	public static boolean checkExist(String fileName, String subPath, String key) {
+		file = new File(pluginFolder + File.separator + subPath + fileName + ".json");
+        try {
+            Object obj = parser.parse(new FileReader(file));
+            JSONObject playerdata = (JSONObject) obj;
+            if(playerdata.containsKey(key)) {
+            	return true;
+            }
+            else {
+            	return false;
+            }
+        } 
+        catch (Exception ex) {
+        	ex.printStackTrace();
+        }
+        return false;
+    }
+	public static boolean checkExist(String fileName, String subPath, String key1, String key2) {
+		file = new File(pluginFolder + File.separator + subPath + fileName + ".json");
+        try {
+            Object obj = parser.parse(new FileReader(file));
+            JSONObject data = (JSONObject) obj;
+            if(data.containsKey(key1)) {
+            	JSONArray dataArray = new JSONArray();
+            	if(data.get(key1) != null) {
+                	dataArray = (JSONArray) data.get(key1);
+                }
+                if(!dataArray.isEmpty()) {
+                	for (int i = 0 ; i < dataArray.size(); i++) {
+        	        	JSONObject tempJSONObject = (JSONObject) dataArray.get(i);
+        	        	if(tempJSONObject.containsKey(key2)){
+        	        		return true;
+        	        	}
+        	        }
+                	return false;
+                }
+                else {
+                	return false;
+                }
+            }
+            else {
+            	return false;
+            }
+        } 
+        catch (Exception ex) {
+        	ex.printStackTrace();
+        }
+        return false;
     }
 	
 	public static JSONObject readRawJSON(String fileName, String subPath) {

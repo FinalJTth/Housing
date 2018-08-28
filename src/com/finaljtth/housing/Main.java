@@ -108,7 +108,7 @@ public class Main extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {       //On the argument, creating object "event" from class PlayerJoinEvent
         Player player = event.getPlayer();                  //Create object player, get Player entity that joined the server
         Inventory inv = player.getInventory();
-        if (DataJSON.readJSON("Data", File.separator, player.getName(), "") == null){
+        if (DataJSON.checkExist("Data", File.separator, player.getName()) == false){
         	DataJSON.writeJSON("Data", File.separator, player.getName(), "buildmode", "false");
         	DataJSON.writeJSON("Data", File.separator, player.getName(), "worldcount", "0");
         }
