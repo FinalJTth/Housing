@@ -89,7 +89,7 @@ public class DataJSON {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static boolean writeJSON(String fileName, String subPath, String playername, String object, String value) {
+	public static boolean writeJSON(String fileName, String subPath, String header, String object, String value) {
 		try {	
 			file = new File(pluginFolder + File.separator + subPath + fileName + ".json");
 	        filePath = new File(pluginFolder + File.separator + subPath);
@@ -104,27 +104,27 @@ public class DataJSON {
     	        fileWriter.close();
             }
             
-            JSONObject playerdata = json;
-            JSONObject data = new JSONObject();
+            JSONObject data = json;
+            JSONObject dataAdd = new JSONObject();
             JSONArray dataArray = new JSONArray();
-            if(playerdata.get(playername) != null) {
-            	dataArray = (JSONArray) playerdata.get(playername);
+            int type = (int) data.get("type");
+            if(data.get(header) != null) {
+            	dataArray = (JSONArray) data.get(header);
             }
             else {
-            	playerdata.put("Type", "1");
-            	return false;
+            	data.put("Type", "1");
             }
-            System.out.println("JSON : " + playerdata.toJSONString());
+            System.out.println("JSON : " + data.toJSONString());
             //JSONObject player = new JSONObject();
 		
-	        data.put(object, value);
+	        dataAdd.put(object, value);
 	        
 	        // Classified if the JSONArray of the player is empty or not
 	        if(type == 1) {
 	        	if(!dataArray.isEmpty()) {
 		        	boolean exist = false;
 		        	int index = 0;
-		        	JSONArray tempArray = (JSONArray) playerdata.get(playername);	
+		        	JSONArray tempArray = (JSONArray) data.get(header);	
 			        System.out.println("Array : " + tempArray.toJSONString());
 			        // Loop to check if the JSONArray of the JSONObject is exist or not
 			        for (int i = 0 ; i < tempArray.size(); i++) {
@@ -132,26 +132,25 @@ public class DataJSON {
 			        	if(tempJSONObject.containsKey(object)){
 			        		exist = true;
 			        		index = i;
-			        		dataArray.set(i, data);
+			        		dataArray.set(i, dataAdd);
 			        		i = tempArray.size();
 			        	}
 			        }
 			        if(exist == true) {
-			        	dataArray.set(index, data);
+			        	dataArray.set(index, dataAdd);
 			        }
 			        else {
-			        	dataArray.add(data);
+			        	dataArray.add(dataAdd);
 			        }
 		        }
 		        else {
-		        	dataArray.add(data);
+		        	dataArray.add(dataAdd);
 		        }
 	        }
 	        else if (type == 2) {
 	        	if(!dataArray.isEmpty()) {
 		        	boolean exist = false;
-		        	int index = 0;
-		        	JSONArray tempArray = (JSONArray) playerdata.get(playername);	
+		        	JSONArray tempArray = (JSONArray) data.get(header);	
 			        System.out.println("Array : " + tempArray.toJSONString());
 			        // Loop to check if the JSONArray of the JSONObject is exist or not
 			        for (int i = 0 ; i < tempArray.size(); i++) {
@@ -165,20 +164,29 @@ public class DataJSON {
 			        	else if(tempJSONObject.containsKey(object)){
 			        		JSONArray tempArray2 = (JSONArray) tempJSONObject.get(object);
 			        		for (int j = 0 ; j < tempArray2.size(); j++) {
-			        			String player = (String) tempArray2.get(i);
+			        			String player = (String) tempArray2.get(j);
 			        			if(player == value){
 			        				exist = true;
 			        				j = tempArray2.size();
 			        			}
 			        		}
-			        		if(exist == true) {
-			        			return false;
-					        }
-			        		else {
-					        	tempArray2.add(value);
+			        		if(!exist) {
+			        			tempArray2.add(value);
 					        	tempJSONObject.put(object, tempArray2);
 					        	dataArray.set(i, tempJSONObject);
 					        }
+			        	}
+			        	else if(!tempJSONObject.containsKey(object)){
+			        		JSONArray tempArray2 = (JSONArray) tempJSONObject.get(object);
+			        		for (int j = 0 ; j < tempArray2.size(); j++) {
+			        			String player = (String) tempArray2.get(j);
+			        			if(player == value){
+			        				tempArray2.remove(j);
+			        				tempJSONObject.put(object, tempArray2);
+						        	dataArray.set(i, tempJSONObject);
+			        				j = tempArray2.size();
+			        			}
+			        		}
 			        	}
 			        }
 		        }
@@ -192,14 +200,14 @@ public class DataJSON {
 	        }
 	        
 	        
+	        System.out.println(dataAdd.toJSONString());
+	        data.put(header, dataArray);
+	        
 	        System.out.println(data.toJSONString());
-	        playerdata.put(playername, dataArray);
 	        
-	        System.out.println(playerdata.toJSONString());
-	        
-	        String rearrangeJSON = rearrange(playerdata);
+	        String rearrangeJSON = rearrange(data);
 
-	        if (!data.isEmpty()) {
+	        if (!dataAdd.isEmpty()) {
 	        	fileWriter.write(rearrangeJSON);
 	        }
 	        fileWriter.flush(); 
@@ -212,45 +220,183 @@ public class DataJSON {
 		return true;
 	}
 	
-	public static String readJSON(String fileName, String subPath, String playername, String object) {
+	public static String readJSON(String fileName, String subPath, String header, String object) {
 		String var = null;
 		file = new File(pluginFolder + File.separator + subPath + fileName + ".json");
-		JSONObject data = new JSONObject();
+		JSONObject dataReturn = new JSONObject();
 		JSONArray dataArray = new JSONArray();
         try {
             Object obj = parser.parse(new FileReader(file));
-            JSONObject playerdata = (JSONObject) obj;
-            if(playerdata.get(playername) != null) {
-            	dataArray = (JSONArray) playerdata.get(playername);
+            JSONObject data = (JSONObject) obj;
+            if(data.get(header) != null) {
+            	dataArray = (JSONArray) data.get(header);
             }
+            int type = (int) data.get("Type");
             boolean exist = false;
         	int index = 0;
-            if(!dataArray.isEmpty()) {
-            	for (int i = 0 ; i < dataArray.size(); i++) {
-    	        	JSONObject tempJSONObject = (JSONObject) dataArray.get(i);
-    	        	if(tempJSONObject.containsKey(object)){
-    	        		exist = true;
-    	        		index = i;
-    	        		i = dataArray.size();
-    	        	}
-    	        }
-            	if(exist == true) {
-    	        	data = (JSONObject) dataArray.get(index);
-    	        	var = (String) data.get(object);
-    	        	return var;
-    	        }
-    	        else {
-    	        	return null;
-    	        }
-            }
-            else {
-            	return null;
-            }
+        	if(type == 1) {
+        		if(!dataArray.isEmpty()) {
+                	for (int i = 0 ; i < dataArray.size(); i++) {
+        	        	JSONObject tempJSONObject = (JSONObject) dataArray.get(i);
+        	        	if(tempJSONObject.containsKey(object)){
+        	        		exist = true;
+        	        		index = i;
+        	        		i = dataArray.size();
+        	        	}
+        	        }
+                	if(exist == true) {
+        	        	dataReturn = (JSONObject) dataArray.get(index);
+        	        	var = (String) dataReturn.get(object);
+        	        	return var;
+        	        }
+        	        else {
+        	        	return null;
+        	        }
+                }
+                else {
+                	return null;
+                }
+        	}
+        	else if (type == 2) {
+        		return "List of string";
+        	}
         } 
         catch (Exception ex) {
         	ex.printStackTrace();
         }
 		return var;
+    }
+	
+	public static boolean readJSON(String fileName, String subPath, String header, String object, String value) {
+		file = new File(pluginFolder + File.separator + subPath + fileName + ".json");
+		JSONArray dataArray = new JSONArray();
+        try {
+            Object obj = parser.parse(new FileReader(file));
+            JSONObject data = (JSONObject) obj;
+            if(data.get(header) != null) {
+            	dataArray = (JSONArray) data.get(header);
+            }
+            int type = (int) data.get("Type");
+            boolean exist = false;
+        	if(type == 1) {
+        		if(!dataArray.isEmpty()) {
+                	for (int i = 0 ; i < dataArray.size(); i++) {
+        	        	JSONObject tempJSONObject = (JSONObject) dataArray.get(i);
+        	        	if(tempJSONObject.containsKey(object)){
+        	        		exist = true;
+        	        		i = dataArray.size();
+        	        	}
+        	        }
+                	if(exist == true) {
+        	        	return true;
+        	        }
+        	        else {
+        	        	return false;
+        	        }
+                }
+                else {
+                	return false;
+                }
+        	}
+        	else if(type == 2) {
+        		if(!dataArray.isEmpty()) {
+                	for (int i = 0 ; i < dataArray.size(); i++) {
+        	        	JSONObject tempJSONObject = (JSONObject) dataArray.get(i);
+        	        	if(tempJSONObject.containsKey(object)){
+        	        		JSONArray tempArray2 = (JSONArray) tempJSONObject.get(object);
+			        		for (int j = 0 ; j < tempArray2.size(); j++) {
+			        			String player = (String) tempArray2.get(j);
+			        			if(player == value){
+			        				exist = true;
+			        				j = tempArray2.size();
+			        			}
+			        		}
+			        		if(exist == true) {
+			        			return true;
+					        }
+			        		else {
+					        	return false;
+					        }
+        	        	}
+        	        }
+                }
+                else {
+                	return false;
+                }
+        	}
+        } 
+        catch (Exception ex) {
+        	ex.printStackTrace();
+        }
+		return false;
+    }
+	
+	public static String getGroup(String fileName, String subPath, String header, String value) {
+		file = new File(pluginFolder + File.separator + subPath + fileName + ".json");
+		JSONArray dataArray = new JSONArray();
+        try {
+            Object obj = parser.parse(new FileReader(file));
+            JSONObject data = (JSONObject) obj;
+            if(data.get(header) != null) {
+            	dataArray = (JSONArray) data.get(header);
+            }
+            int type = (int) data.get("Type");
+            boolean exist = false;
+        	if(type == 1) {
+        		if(!dataArray.isEmpty()) {
+        			String object = "";
+                	for (int i = 0 ; i < dataArray.size(); i++) {
+        	        	JSONObject tempJSONObject = (JSONObject) dataArray.get(i);
+        	        	if(tempJSONObject.containsValue(value)){
+        	        		exist = true;
+        	        		object = tempJSONObject.keySet().toString();
+        	        		i = dataArray.size();
+        	        	}
+        	        }
+                	if(exist == true) {
+        	        	return object;
+        	        }
+        	        else {
+        	        	return null;
+        	        }
+                }
+                else {
+                	return null;
+                }
+        	}
+        	else if(type == 2) {
+        		if(!dataArray.isEmpty()) {
+        			String object = "";
+                	for (int i = 0 ; i < dataArray.size(); i++) {
+        	        	JSONObject tempJSONObject = (JSONObject) dataArray.get(i);
+        	        	if(tempJSONObject.containsValue(value)){
+        	        		JSONArray tempArray2 = (JSONArray) tempJSONObject.values();
+			        		for (int j = 0 ; j < tempArray2.size(); j++) {
+			        			String player = (String) tempArray2.get(j);
+			        			if(player == value){
+			        				exist = true;
+			        				object = tempJSONObject.keySet().toString();
+			        				j = tempArray2.size();
+			        			}
+			        		}
+			        		if(exist == true) {
+			        			return object;
+					        }
+			        		else {
+					        	return null;
+					        }
+        	        	}
+        	        }
+                }
+                else {
+                	return null;
+                }
+        	}
+        } 
+        catch (Exception ex) {
+        	ex.printStackTrace();
+        }
+		return null;
     }
 	
 	public static boolean checkExist(String fileName, String subPath, String key) {
