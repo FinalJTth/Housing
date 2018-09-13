@@ -137,8 +137,6 @@ public class JSONData {
 	
 	public static void writeJSON(String header, String object, String value) {
 		try {	
-			file = new File(pluginFolder + File.separator + subPath + fileName + ".json");
-	        filePath = new File(pluginFolder + File.separator + subPath);
 	        FileWriter fileWriter = new FileWriter(file); 
 	        filePath.mkdirs();
             if (!file.exists()) {
