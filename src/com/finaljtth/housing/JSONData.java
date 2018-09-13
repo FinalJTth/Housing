@@ -149,7 +149,7 @@ public class JSONData {
             	fileWriter.flush(); 
     	        fileWriter.close();
             }
-            JSONObject data = json;
+            JSONObject data = JSON;
             JSONObject dataAdd = new JSONObject();
             JSONArray dataArray = new JSONArray();
             int type = (int) data.get("type");
