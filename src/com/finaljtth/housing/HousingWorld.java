@@ -38,8 +38,13 @@ public class HousingWorld {
 		ownerName = ON;
 		world = W;
 	}
+	public HousingWorld(String WN, String ON, String W) {
+		worldName = WN;
+		ownerName = ON;
+		world = Bukkit.getWorld(W);
+	}
 	
-	public String getName() {
+	public String getWorldName() {
 		return worldName;
 	}
 	public String getOwnerName() {
@@ -49,12 +54,28 @@ public class HousingWorld {
 		return world;
 	}
 	
+	public void worldName(String WN) {
+		worldName = WN;
+	}
+	public void ownerName(String ON) {
+		ownerName = ON;
+	}
+	public void world(String W) {
+		world = Bukkit.getWorld(W);
+	}
+	public void world(World W) {
+		world = W;
+	}
+	
 	public void createWorld() {
 		WorldManager wm = (WorldManager) Main.getMultiverseCore().getMVWorldManager();
 		if(!wm.isMVWorld(worldName)){
 		    wm.cloneWorld("template", worldName);
 		    wm.loadWorld(worldName);
 		    wm.getMVWorld(worldName).setAlias("Housing");
+		}
+		else {
+			wm.loadWorld(worldName);
 		}
 	}
 	
