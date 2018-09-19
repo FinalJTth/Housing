@@ -46,15 +46,29 @@ import com.onarandombox.MultiverseCore.MultiverseCore;
 public class Main extends JavaPlugin implements Listener {
 	
 	public static org.bukkit.plugin.Plugin plugin = null;
-	
+    private JSONData Data;
+    private JSONData Group;
     FileConfiguration config = getConfig();
     
+    public Main(){
+    	Data = new JSONData("Data.json");
+    	Group = new JSONData("Group.json");
+    }
+    
+    public JSONData getDataJSON() {
+		return Data;
+    }
+    public JSONData getGroupJSON() {
+		return Group;
+    }
+
     @Override
     public void onEnable() {
     	getLogger().info("Initializing plugin ...");
     	plugin = this;
         getLogger().info("Creating Configuration file ...");
-        DataJSON.setupJSON(this);
+        Data.setup();
+        Group.setup();
         //Creating Configuration File on onEnable
         config.addDefault("MotD", true);     //Generate a config.yml with the option 'MotD'. It will be set to true by default.
         config.addDefault("World.world_maximum", 1);
@@ -108,9 +122,9 @@ public class Main extends JavaPlugin implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {       //On the argument, creating object "event" from class PlayerJoinEvent
         Player player = event.getPlayer();                  //Create object player, get Player entity that joined the server
         Inventory inv = player.getInventory();
-        if (DataJSON.checkExist("Data", File.separator, player.getName()) == false){
-        	DataJSON.writeJSON("Data", File.separator, player.getName(), "buildmode", "false");
-        	DataJSON.writeJSON("Data", File.separator, player.getName(), "worldcount", "0");
+        if (Data.isExist(player.getName()) == false) {
+        	Data.write(player.getName(), "buildmode", "false");
+        	Data.write(player.getName(), "worldcount", "0");
         }
         ItemStack item = Gui.createItem(ChatColor.GREEN + "House GUI", new ArrayList<String>(Arrays.asList(ChatColor.DARK_GRAY + "Right click to open House GUI")), Material.NETHER_STAR);
         if (!player.getInventory().contains(item)) {
@@ -128,7 +142,6 @@ public class Main extends JavaPlugin implements Listener {
     	player.sendMessage("[DEBUG] Value of buildmode is " + String.valueOf(buildmode));
     	player.sendMessage("[DEBUG] Current world : " + currentworld);
     	player.sendMessage("[DEBUG] Player Housing world : " + housingworld);
-    	player.sendMessage("[DEBUG] Value of buildmode is " + String.valueOf(buildmode));
     	if (player.getWorld().getName() == (player.getName() + "_housing")){
     		if (buildmode == false || player.hasPermission("housing.buildmode.bypass") == false) {
     			event.setCancelled(true);
@@ -289,10 +302,10 @@ public class Main extends JavaPlugin implements Listener {
         			sender.sendMessage(ChatColor.RED + "You do not have permission to do that.");
         			return true;
        			}
-        		if (DataJSON.readJSON("Data", File.separator, args[1], "worldcount") == null) {
+        		if (Data.isExist(args[1]) == false) {
         			sender.sendMessage(ChatColor.RED + "The player is not a valid player in the database");
         			return true;
-    			}
+        		}
         		else {
         			int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  args[1], "worldcount"));
             		int worldmax = plugin.getConfig().getInt("World.world_maximum");
@@ -300,7 +313,7 @@ public class Main extends JavaPlugin implements Listener {
             			sender.sendMessage(ChatColor.RED + "The player has reached the maximum number of world.");
             		}
             		else {
-            			DataJSON.writeJSON("Data", File.separator, args[1], "worldcount", String.valueOf(worldcount+1));
+            			Data.write(args[1], "worldcount", String.valueOf(worldcount+1));
             			sender.sendMessage(ChatColor.GOLD + "Creating housing world for player " + ChatColor.AQUA + args[1]);
                     	HousingManager.cloningHousingWorld(args[1]);
             		}
@@ -317,7 +330,7 @@ public class Main extends JavaPlugin implements Listener {
     			}
         		else {
         			int worldcount = Integer.parseInt(DataJSON.readJSON("Data", File.separator,  args[1], "worldcount"));
-            		DataJSON.writeJSON("Data", File.separator, args[1], "worldcount", String.valueOf(worldcount+1));
+        			Data.write(args[1], "worldcount", String.valueOf(worldcount+1));
             		sender.sendMessage(ChatColor.GOLD + "Creating housing world for player " + ChatColor.AQUA + args[1]);
                     HousingManager.cloningHousingWorld(args[1]);
             	}
@@ -338,7 +351,7 @@ public class Main extends JavaPlugin implements Listener {
             			sender.sendMessage(ChatColor.RED + "The player has no housing world to delete");
             		}
             		else {
-            			DataJSON.writeJSON("Data", File.separator, args[1], "worldcount", String.valueOf(worldcount-1));
+            			Data.write(args[1], "worldcount", String.valueOf(worldcount-1));
             			sender.sendMessage(ChatColor.GOLD + "Deleting housing world for player " + ChatColor.AQUA + args[1]);
             			HousingManager.deleteHousingWorld(args[1]);
             		}
@@ -396,7 +409,8 @@ public class Main extends JavaPlugin implements Listener {
     }
     if(cmd.getName().equalsIgnoreCase("writejson")){
     	if (args.length == 4 && sender.hasPermission("housing.json.write")){
-    		DataJSON.writeJSON(args[0], File.separator, args[1], args[2], args[3]);
+    		JSONData temp = new JSONData(args[0]);
+    		temp.write(args[1], args[2], args[3]);
         	sender.sendMessage(ChatColor.GREEN + "Writing file " + ChatColor.AQUA + args[0] + "json" + ChatColor.GREEN + " for player " + ChatColor.AQUA + args[1] + ChatColor.GREEN + " on variable " + ChatColor.AQUA + args[2] + ChatColor.GREEN + " with value " + ChatColor.AQUA + args[3]);
         	return true;
     	}
@@ -409,7 +423,8 @@ public class Main extends JavaPlugin implements Listener {
     }
     if(cmd.getName().equalsIgnoreCase("readjson")){
     	if (args.length == 3 && sender.hasPermission("housing.json.read")) {
-    		String data = DataJSON.readJSON(args[0], File.separator, args[1], args[2]);
+    		JSONData temp = new JSONData(args[0]);
+    		String data = temp.read(args[1], args[2]);
         	sender.sendMessage(ChatColor.GREEN + "Reading file " + ChatColor.AQUA + args[0] + "json" + ChatColor.GREEN + " for player " + ChatColor.AQUA + args[1] + ChatColor.GREEN + " on variable " + ChatColor.AQUA + args[2] + ChatColor.GREEN + " with value " + ChatColor.AQUA + data);
         	return true;
     	}
@@ -422,8 +437,8 @@ public class Main extends JavaPlugin implements Listener {
     }
     if(cmd.getName().equalsIgnoreCase("readrawjson")){
     	if (args.length == 1 && sender.hasPermission("housing.json.readraw")) {
-    		String data = DataJSON.readRawJSON(args[0], File.separator).toJSONString();
-        	sender.sendMessage(data);
+    		JSONData temp = new JSONData(args[0]);
+        	sender.sendMessage(temp.getJSONObject().toJSONString());
         	return true;
     	}
     	else if(sender.hasPermission("housing.json.readraw") == false){

@@ -16,9 +16,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 public class Gui {
-	
 	public static Inventory main_gui;
 	public static Inventory list_gui;
+	private static Main DefStorage = new Main();
+	public static JSONData Data = DefStorage.getDataJSON();
+	public static JSONData Group = DefStorage.getGroupJSON();
 	
 	public static ItemStack createItem(String name, ArrayList<String> desc, Material mat) {
         ItemStack i = new ItemStack(mat, 1);
@@ -84,14 +86,14 @@ public class Gui {
     public static void buildMode(Player player, int num) {
     	if (num == 0) {
         	player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 1f, 1f);
-        	DataJSON.writeJSON("Data", File.separator, player.getName(), "buildmode", "true");
+        	Data.write(player.getName(), "buildmode", "true");
         	player.sendMessage(ChatColor.GREEN + "You are changing to " + ChatColor.AQUA + "Build Mode.");
         	player.sendMessage(ChatColor.GRAY + "Use \"/housebuildmode\" to deactivate it");
         	player.sendMessage(ChatColor.GRAY + "The world can now be modified");
         }
         if (num == 1) {
         	player.playSound(player.getLocation(), Sound.BLOCK_NOTE_PLING, 1f, 1f);
-        	DataJSON.writeJSON("Data", File.separator, player.getName(), "buildmode", "false");
+        	Data.write(player.getName(), "buildmode", "false");
         	player.sendMessage(ChatColor.GREEN + "You are changing to " + ChatColor.AQUA + "Default Mode.");
         	player.sendMessage(ChatColor.GRAY + "Use \"/housebuildmode\" to reactivate it.");
         	player.sendMessage(ChatColor.GRAY + "The world cannot be modified");
